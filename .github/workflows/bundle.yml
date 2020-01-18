@@ -1,5 +1,8 @@
 name: Bundle ZIP
-on: [push]
+on:
+  # On a real scenarion, we need different flows for testing PRs and releasing
+  # See: https://github.com/actions/upload-release-asset
+  - push
 
 jobs:
   build:
@@ -16,3 +19,20 @@ jobs:
         with:
           name: bundle
           path: build/ui-bundle.zip
+      - uses: actions/create-release@v1.0.0
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: poc
+          release_name: Proof-of-Concept
+          draft: false
+          prerelease: true
+      - uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/ui-bundle.zip
+          asset_name: ui-bundle.zip
+          asset_content_type: application/zip
